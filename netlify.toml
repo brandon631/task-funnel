@@ -1,13 +1,11 @@
 [build]
-  command = "pnpm --filter admin build"
+  command = "corepack enable && pnpm -w install && pnpm --filter admin build"
   publish = "apps/admin/dist"
 
-# Optional: help Netlify use Vite dev hints locally
 [dev]
   command = "pnpm --filter admin dev"
   framework = "vite"
 
-# Single Page App fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -15,4 +13,5 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--version"   # prevents Netlify from running npm ci
+  NPM_FLAGS = "--version"        # prevent Netlify from running npm ci
+  NETLIFY_USE_PNPM = "true"      # extra hint for pnpm
