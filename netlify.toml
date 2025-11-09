@@ -1,0 +1,18 @@
+[build]
+  command = "pnpm --filter admin build"
+  publish = "apps/admin/dist"
+
+# Optional: help Netlify use Vite dev hints locally
+[dev]
+  command = "pnpm --filter admin dev"
+  framework = "vite"
+
+# Single Page App fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--version"   # prevents Netlify from running npm ci

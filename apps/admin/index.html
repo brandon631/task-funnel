@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Funnel Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .sync-online {
+        background: #052e16;
+        color: #d1fae5;
+      }
+      .sync-offline {
+        background: #7f1d1d;
+        color: #fee2e2;
+      }
+      .sync-error {
+        background: #7f1d1d;
+        color: #ffffff;
+      }
+      #sync-status-dot {
+        background-color: currentColor;
+      }
+    </style>
+    <script src="/api.js"></script>
+    <script src="/sync.js"></script>
+  </head>
+  <body>
+    <div id="sync-strip" class="fixed top-0 inset-x-0 hidden items-center justify-between px-3 py-1 text-sm z-50">
+      <div class="flex items-center gap-2">
+        <span id="sync-status-dot" class="inline-block h-2 w-2 rounded-full"></span>
+        <span id="sync-status-text">SYNC:</span>
+      </div>
+      <span id="sync-queue-count" class="opacity-80"></span>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

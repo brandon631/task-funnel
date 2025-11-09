@@ -1,0 +1,29 @@
+﻿{
+    "name":  "task-funnel",
+    "version":  "0.1.0",
+    "private":  true,
+    "type":  "module",
+    "scripts":  {
+                    "dev":  "pnpm --filter admin dev",
+                    "build":  "pnpm -r build",
+                    "lint":  "eslint .",
+                    "format":  "prettier --write .",
+                    "typecheck":  "pnpm -r typecheck"
+                },
+    "devDependencies":  {
+                            "@playwright/test":  "^1.40.1",
+                            "@typescript-eslint/eslint-plugin":  "^6.13.2",
+                            "@typescript-eslint/parser":  "^6.13.2",
+                            "eslint":  "^8.55.0",
+                            "eslint-config-prettier":  "^9.1.0",
+                            "eslint-plugin-react-hooks":  "^4.6.0",
+                            "eslint-plugin-react-refresh":  "^0.4.5",
+                            "prettier":  "^3.1.0",
+                            "prettier-plugin-tailwindcss":  "^0.5.9",
+                            "typescript":  "^5.3.3"
+                        },
+    "engines":  {
+                    "node":  "\u003e=20.0.0",
+                    "pnpm":  "\u003e=8.0.0"
+                }
+}
