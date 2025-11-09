@@ -1,5 +1,5 @@
 [build]
-  command = "corepack enable && pnpm -w install && pnpm --filter admin build"
+  command = "npm install -g pnpm && pnpm -w install && pnpm --filter admin build"
   publish = "apps/admin/dist"
 
 [dev]
