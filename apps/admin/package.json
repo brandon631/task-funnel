@@ -9,7 +9,8 @@
         "build:netlify": "vite build",
         "postbuild": "node scripts/copy404.js",
         "lint": "eslint .",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "deploy:netlify": "netlify deploy --prod --dir dist"
     },
     "dependencies": {
         "react": "^19.1.1",

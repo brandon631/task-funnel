@@ -20,3 +20,7 @@ check:
 
 e2e:
 	Write-Output "placeholder e2e"
+
+deploy-netlify:
+	pnpm --filter admin build
+	netlify deploy --prod --dir apps/admin/dist
