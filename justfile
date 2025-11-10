@@ -23,4 +23,4 @@ e2e:
 
 deploy-netlify:
 	pnpm --filter admin build
-	netlify deploy --prod --dir apps/admin/dist
+	cmd /c "netlify deploy --prod --site 38991b3e-9547-4199-8302-8e9bfd6fb8b5 --dir apps/admin/dist"
