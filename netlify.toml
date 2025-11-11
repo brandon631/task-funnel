@@ -1,15 +1,20 @@
 [build]
-  command = ""
+  # Deploy the root directory (where index.html, js/, src/ folders are)
+  base = ""
   publish = "."
-
-[dev]
-  command = "python -m http.server 8000"
-  framework = "#custom"
+  command = "echo 'No build needed - deploying static HTML app'"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ."
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
 
 [build.environment]
   NODE_VERSION = "20"
