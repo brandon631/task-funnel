@@ -1,10 +1,10 @@
 [build]
-  command = "npm install -g pnpm && pnpm -w install && pnpm --filter admin build"
-  publish = "apps/admin/dist"
+  command = ""
+  publish = "."
 
 [dev]
-  command = "pnpm --filter admin dev"
-  framework = "vite"
+  command = "python -m http.server 8000"
+  framework = "#custom"
 
 [[redirects]]
   from = "/*"
@@ -13,5 +13,3 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--version"        # prevent Netlify from running npm ci
-  NETLIFY_USE_PNPM = "true"      # extra hint for pnpm

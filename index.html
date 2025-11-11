@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steve's Task Funnel System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <h1>Task Funnel</h1>
+        </div>
+        <div class="nav-user">
+            <select id="userSelect" onchange="switchUser()"></select>
+        </div>
+    </nav>
+
+    <!-- Sync Status Strip -->
+    <div id="sync-strip" class="sync-strip" aria-live="polite" style="display:none;">
+        <span id="sync-status-dot" class="sync-dot"></span>
+        <span id="sync-status-text">SYNC: offline</span>
+        <span id="sync-queue-count" class="sync-queue" title="Pending writes"></span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-menu">
+                <button class="menu-item active" onclick="showView('calendar')" id="calendarBtn">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Calendar</span>
+                </button>
+                <button class="menu-item" onclick="showView('postits')" id="postitsBtn">
+                    <i class="fas fa-note-sticky"></i>
+                    <span>Post-its</span>
+                </button>
+                <button class="menu-item" onclick="showView('today-prep')" id="todayPrepBtn">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Today Prep</span>
+                </button>
+                <button class="menu-item" onclick="showView('person-funnel')" id="personFunnelBtn">
+                    <i class="fas fa-users"></i>
+                    <span>Person Funnel</span>
+                </button>
+                <button class="menu-item" onclick="showView('job-hub')" id="jobHubBtn">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Job Hub</span>
+                </button>
+                <button class="menu-item" onclick="showView('client-touches')" id="clientTouchesBtn">
+                    <i class="fas fa-phone"></i>
+                    <span>Client Touches</span>
+                </button>
+                <button class="menu-item" onclick="showView('crew-today')" id="crewTodayBtn" style="display: none;">
+                    <i class="fas fa-hammer"></i>
+                    <span>My Tasks Today</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Voice Recording Button (Floating) -->
+            <button class="voice-btn" onclick="toggleVoiceRecording()" id="voiceBtn">
+                <i class="fas fa-microphone" id="voiceIcon"></i>
+            </button>
+
+            <!-- Calendar View -->
+            <div id="calendar-view" class="view active">
+                <div class="view-header">
+                    <h2>Project Calendar</h2>
+                    <div class="calendar-controls">
+                        <div class="view-mode-controls">
+                            <button class="view-mode-btn active" data-view="month" title="Month view - see full month overview">Month</button>
+                            <button class="view-mode-btn" data-view="work-week" title="Work week - Monday through Friday">Work Week</button>
+                            <button class="view-mode-btn" data-view="full-week" title="Full week - Sunday through Saturday">Full Week</button>
+                            <button class="view-mode-btn" data-view="day" title="Single day view">Day</button>
+                            <button class="view-mode-btn" data-view="lead-table" title="Lead Table - spreadsheet view for bulk edits">Lead Table</button>
+                            <button class="view-mode-btn" data-view="postits" title="Post-its Master - sticky note view with filters">Post-its</button>
+                        </div>
+                        <button onclick="previousPeriod()" class="nav-btn" title="Previous period">&larr;</button>
+                        <span id="calendarWeekDisplay">October 2025</span>
+                        <button onclick="nextPeriod()" class="nav-btn" title="Next period">&rarr;</button>
+                        <button onclick="goToToday()" class="btn-secondary" title="Go to today">Today</button>
+                        <button class="btn-primary" onclick="showTaskModal()">+ New Project</button>
+                        <div class="export-import-controls">
+                            <button class="btn-secondary btn-compact" onclick="exportTasksJSON()" title="Export all tasks to JSON">Export JSON</button>
+                            <button class="btn-secondary btn-compact" onclick="exportTasksCSV()" title="Export all tasks to CSV">Export CSV</button>
+                            <button class="btn-secondary btn-compact" onclick="triggerImportJSON()" title="Import tasks from JSON">Import JSON</button>
+                            <input type="file" id="importFileInput" accept="application/json" style="display: none;" onchange="handleImportFile(event)">
+                        </div>
+                    </div>
+                </div>
+                <div class="calendar-toolbar">
+                    <div class="calendar-filters">
+                        <label for="calendarJobFilter">
+                            Job
+                            <select id="calendarJobFilter">
+                                <option value="all">All Jobs</option>
+                            </select>
+                        </label>
+                        <label for="calendarAssigneeFilter">
+                            Person
+                            <select id="calendarAssigneeFilter">
+                                <option value="all">All People</option>
+                            </select>
+                        </label>
+                        <label for="calendarPriorityFilter">
+                            Priority
+                            <select id="calendarPriorityFilter">
+                                <option value="all">All</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="high">High</option>
+                                <option value="normal">Normal</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </label>
+                        <label for="calendarStatusFilter">
+                            Status
+                            <select id="calendarStatusFilter">
+                                <option value="all">All</option>
+                                <option value="open">Open</option>
+                                <option value="next">Next</option>
+                                <option value="doing">In Progress</option>
+                                <option value="waiting">Waiting</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </label>
+                        <button class="btn-secondary btn-compact" id="calendarClearFilters">Clear Filters</button>
+                    </div>
+                </div>
+                <div class="lead-table-wrap" id="leadTableWrap" style="display: none;">
+                    <!-- Lead Table will be generated here -->
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+
+            <!-- Post-its Master View -->
+            <div id="postits-view" class="view">
+                <div class="postits-toolbar">
+                    <div class="pt-group">
+                        <label class="pt-label">Theme:</label>
+                        <button id="pt-theme-sticky" class="pt-btn is-active" data-theme="sticky">Sticky Notes</button>
+                        <button id="pt-theme-board" class="pt-btn" data-theme="board">Whiteboard</button>
+                    </div>
+                    <div class="pt-group">
+                        <label for="pt-scale" class="pt-label">Scale:</label>
+                        <input id="pt-scale" type="range" min="90" max="140" step="5" value="100" />
+                        <span id="pt-scale-val">100%</span>
+                    </div>
+                    <div class="pt-group">
+                        <button id="pt-new-sticky" class="pt-btn pt-btn-primary">+ New Sticky</button>
+                    </div>
+                </div>
+                <div class="postits-layout">
+                    <aside class="postits-filters">
+                        <div class="filter-block">
+                            <div class="filter-title">Employees</div>
+                            <input id="filter-people-search" class="filter-search" placeholder="Search people" type="text">
+                            <div class="filter-bulk">
+                                <button id="people-select-all" class="pt-mini">Select All</button>
+                                <button id="people-unselect-all" class="pt-mini">Unselect All</button>
+                            </div>
+                            <div id="filter-people" class="filter-list"></div>
+                        </div>
+                        <div class="filter-block">
+                            <div class="filter-title">Jobs</div>
+                            <input id="filter-jobs-search" class="filter-search" placeholder="Search jobs" type="text">
+                            <div class="filter-bulk">
+                                <button id="jobs-select-all" class="pt-mini">Select All</button>
+                                <button id="jobs-unselect-all" class="pt-mini">Unselect All</button>
+                            </div>
+                            <div id="filter-jobs" class="filter-list"></div>
+                        </div>
+                    </aside>
+                    <main class="postits-grid">
+                        <div class="postits-weekbar" id="postits-weekbar"></div>
+                        <div class="postits-columns" id="postits-columns">
+                            <!-- columns injected here -->
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            <!-- Today Prep View -->
+            <div id="today-prep-view" class="view">
+                <div class="view-header">
+                    <h2>Today Prep - Are My Guys Ready?</h2>
+                    <button class="btn-primary" onclick="openChecklistBuilder()">Add Checklist</button>
+                </div>
+                <div class="prep-grid" id="prepGrid">
+                    <!-- Prep cards will be generated here -->
+                </div>
+            </div>
+
+            <!-- Person Funnel View -->
+            <div id="person-funnel-view" class="view">
+                <div class="view-header">
+                    <h2>Person Funnel</h2>
+                    <select id="personSelect" onchange="updatePersonFunnel()">
+                        <option value="">Select Person</option>
+                    </select>
+                </div>
+                <div class="kanban-board" id="kanbanBoard">
+                    <!-- Kanban columns will be generated here -->
+                </div>
+            </div>
+
+            <!-- Job Hub View -->
+            <div id="job-hub-view" class="view">
+                <div class="view-header">
+                    <h2>Job Hub</h2>
+                    <select id="jobSelect" onchange="updateJobHub()">
+                        <option value="">Select Job</option>
+                    </select>
+                </div>
+                <div class="job-tabs">
+                    <button class="tab-btn active" data-tab="tasks" onclick="showJobTab('tasks', this)">Tasks</button>
+                    <button class="tab-btn" data-tab="photos" onclick="showJobTab('photos', this)">Photos</button>
+                    <button class="tab-btn" data-tab="notes" onclick="showJobTab('notes', this)">Notes</button>
+                    <button class="tab-btn" data-tab="client" onclick="showJobTab('client', this)">Client Thread</button>
+                </div>
+                <div class="job-content" id="jobContent">
+                    <!-- Job content will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Client Touches View -->
+            <div id="client-touches-view" class="view">
+                <div class="view-header">
+                    <h2>Client Touches - Did I Keep Promises?</h2>
+                </div>
+                <div class="client-list" id="clientList">
+                    <!-- Client cards will be generated here -->
+                </div>
+            </div>
+
+            <!-- Crew Today View -->
+            <div id="crew-today-view" class="view">
+                <div class="view-header">
+                    <h2>My Tasks Today</h2>
+                    <div class="crew-filters">
+                        <button class="filter-btn active" onclick="setCrewFilter('today', this)">Today</button>
+                        <button class="filter-btn" onclick="setCrewFilter('all', this)">All Open on Job</button>
+                    </div>
+                </div>
+                <div class="crew-task-list" id="crewTaskList">
+                    <!-- Crew tasks will be displayed here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Create New Project</h3>
+                <button class="close-btn" onclick="closeTaskModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="taskTitle" placeholder="Task description (will be auto-capitalized)" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Job</label>
+                            <select id="taskJob" required>
+                                <option value="">Select Job</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Assignee</label>
+                            <select id="taskAssignee" required>
+                                <option value="">Select Assignee</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="taskStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="date" id="taskDueDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select id="taskPriority">
+                                <option value="low">Low</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Required Proof</label>
+                            <select id="taskProof">
+                                <option value="none">None</option>
+                                <option value="photo">Photo</option>
+                                <option value="client_ok">Client OK</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="taskLocation" placeholder="Specific location on job site">
+                    </div>
+                    <div class="form-group">
+                        <label>Dependencies</label>
+                        <select id="taskDependencies" multiple size="3">
+                            <!-- Will be populated with other tasks -->
+                        </select>
+                        <small class="form-help">Hold Ctrl/Cmd to select multiple tasks. This task cannot start until selected tasks are completed.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="taskNotes" placeholder="Additional details and requirements" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                <button type="submit" class="btn-primary" onclick="saveTask()">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Recording Modal -->
+    <div id="voiceModal" class="modal">
+        <div class="modal-content voice-modal">
+            <div class="modal-header">
+                <h3>Voice Recording</h3>
+                <button class="close-btn" onclick="stopVoiceRecording()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="recording-indicator">
+                    <div class="pulse-circle"></div>
+                    <p>Recording... Speak naturally</p>
+                </div>
+                <div class="transcript" id="voiceTranscript">
+                    <p>Say something like: "Victor - raise shingles half inch at awning - Mansfield - today. Send photos."</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="stopVoiceRecording()">Stop & Parse</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Preview Modal -->
+    <div id="importPreviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Import Preview</h3>
+                <button class="close-btn" onclick="closeImportPreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="importPreviewSummary">
+                    <!-- Summary will be inserted here -->
+                </div>
+                <div id="importPreviewSample" style="max-height: 300px; overflow-y: auto; margin-top: 1rem;">
+                    <!-- Sample changes will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeImportPreviewModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="applyImport()">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unified Task Management Modal -->
+    <div id="unifiedTaskModal" class="modal">
+        <div class="modal-content unified-task-modal">
+            <div class="modal-header">
+                <h2 id="unifiedModalTitle">Project Management</h2>
+                <button class="close-btn" onclick="closeUnifiedTaskModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="unified-tabs">
+                    <button class="unified-tab active" data-tab-name="edit" onclick="switchUnifiedTab('edit', this)">Edit Task</button>
+                    <button class="unified-tab" data-tab-name="subtasks" onclick="switchUnifiedTab('subtasks', this)">Sub-tasks</button>
+                </div>
+
+                <!-- Edit Task Tab -->
+                <div id="unified-edit-tab" class="unified-tab-content active">
+                    <form id="unifiedTaskForm" class="unified-form">
+                        <div class="unified-form-row">
+                            <label>Title</label>
+                            <input type="text" id="unifiedTaskTitle" required>
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Job</label>
+                            <select id="unifiedTaskJob" required></select>
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Assignee</label>
+                            <select id="unifiedTaskAssignee" required></select>
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Start Date</label>
+                            <input type="date" id="unifiedTaskStartDate">
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Due Date</label>
+                            <input type="date" id="unifiedTaskDueDate" required>
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Priority</label>
+                            <select id="unifiedTaskPriority">
+                                <option value="low">Low</option>
+                                <option value="normal">Normal</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Dependencies</label>
+                            <select id="unifiedTaskDependencies" multiple size="3"></select>
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Notes</label>
+                            <textarea id="unifiedTaskNotes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Sub-tasks Tab -->
+                <div id="unified-subtasks-tab" class="unified-tab-content">
+                    <div class="unified-subtask-form">
+                        <h4>Add Sub-task</h4>
+                        <div class="unified-form-row">
+                            <label>Description</label>
+                            <input type="text" id="unifiedSubtaskDescription" placeholder="Task description">
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Assign To</label>
+                            <select id="unifiedSubtaskAssignee"></select>
+                        </div>
+                        <div class="unified-form-row">
+                            <label>Date</label>
+                            <input type="date" id="unifiedSubtaskDate">
+                        </div>
+                        <button type="button" onclick="addUnifiedSubtask()">Add Sub-task</button>
+                    </div>
+
+                    <div class="unified-subtask-list">
+                        <h4>Current Sub-tasks</h4>
+                        <div id="unifiedSubtaskItems"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeUnifiedTaskModal()">Cancel</button>
+                <button class="btn-primary" onclick="saveUnifiedTask()">Save All Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Quick Panel -->
+    <div id="taskQuickPanel" class="task-quick-panel">
+        <div class="task-quick-header">
+            <div class="task-quick-title-group">
+                <div class="task-quick-title">Project</div>
+                <div class="task-quick-meta">
+                    <span class="task-quick-job"></span>
+                    <span class="task-quick-assignee"></span>
+                </div>
+            </div>
+            <button type="button" id="quickPanelClose" class="task-quick-close">&times;</button>
+        </div>
+        <div class="task-quick-body">
+            <div class="task-quick-dates"></div>
+            <div class="task-quick-status"></div>
+            <div class="task-quick-subtasks">
+                <div class="task-quick-subtasks-header">
+                    <span>Tasks</span>
+                    <span class="task-quick-count">0 total</span>
+                </div>
+                <div id="quickSubtaskList" class="task-quick-subtask-list"></div>
+                <form id="quickSubtaskForm" class="task-quick-subtask-form">
+                    <div class="subtask-form-row">
+                        <input type="text" id="quickSubtaskDescription" placeholder="What task needs to be completed?" required autocomplete="off">
+                        <button type="button" id="quickSubtaskClear" class="subtask-clear-btn" title="Clear form">&times;</button>
+                    </div>
+                    <div class="subtask-form-row">
+                        <select id="quickSubtaskAssignee" required>
+                            <option value="">Assign to...</option>
+                        </select>
+                        <input type="date" id="quickSubtaskDate" required>
+                    </div>
+                    <div class="subtask-form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i> Add Task
+                        </button>
+                        <span class="subtask-form-hint">Press Ctrl+Enter to add quickly</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="task-quick-footer">
+            <button type="button" id="quickOpenFull" class="btn-secondary">Open Full Project</button>
+        </div>
+    </div>
+
+    <!-- Checklist Builder Modal -->
+    <div id="checklistModal" class="modal">
+        <div class="modal-content checklist-modal">
+            <div class="modal-header">
+                <h3>Create Site Checklist</h3>
+                <button class="close-btn" onclick="closeChecklistModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="checklist-builder">
+                    <div class="checklist-form-section">
+                        <h4>Checklist Details</h4>
+                        <div class="form-group">
+                            <label>Checklist Title</label>
+                            <input type="text" id="checklistTitle" placeholder="e.g., Morning Safety Checklist" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Job Site</label>
+                                <select id="checklistJob" required>
+                                    <option value="">Select Job</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Template</label>
+                                <select id="checklistTemplate" onchange="loadChecklistTemplate()">
+                                    <option value="">Start from scratch</option>
+                                    <option value="safety">Safety Checklist</option>
+                                    <option value="inspection">Pre-work Inspection</option>
+                                    <option value="tools">Tool & Equipment Check</option>
+                                    <option value="cleanup">End of Day Cleanup</option>
+                                    <option value="roofing">Roofing Specific</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-form-section">
+                        <h4>Checklist Items</h4>
+                        <div class="checklist-items" id="checklistItems">
+                            <div class="checklist-item-form">
+                                <input type="text" id="newChecklistItem" placeholder="Add checklist item..." onkeypress="handleChecklistItemKeypress(event)">
+                                <button type="button" onclick="addChecklistItem()" class="btn-icon">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-form-section">
+                        <h4>Assignment & Schedule</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Assign To</label>
+                                <select id="checklistAssignees" multiple size="4">
+                                    <!-- Will be populated with crew members -->
+                                </select>
+                                <small class="form-help">Hold Ctrl/Cmd to select multiple people</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Schedule</label>
+                                <select id="checklistSchedule">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="project-start">Project Start</option>
+                                    <option value="project-end">Project End</option>
+                                    <option value="one-time">One Time</option>
+                                </select>
+                                <div class="form-group" style="margin-top: 0.5rem;">
+                                    <label>Start Date</label>
+                                    <input type="date" id="checklistStartDate">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeChecklistModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="saveChecklist()">Create Checklist</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. Config FIRST -->
+    <script src="config.js"></script>
+
+    <!-- 2. Cloud connectors -->
+    <script src="src/api.js"></script>
+    <script src="src/sync.js"></script>
+    
+    <!-- 3. Core app -->
+    <script src="js/data.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/enhancements.js"></script>
+</body>
+</html>
+
