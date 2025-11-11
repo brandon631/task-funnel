@@ -1,0 +1,15 @@
+This file confirms you are deploying from the ROOT of task-funnel repo.
+If you see this file at https://steves-app-02-1.netlify.app/DEPLOY_ROOT.txt
+then Netlify IS deploying the right folder.
+
+Deployed files should include:
+- index.html (main app)
+- styles.css
+- js/app.js
+- js/calendar.js
+- js/data.js
+- js/voice.js
+- js/enhancements.js
+- src/api.js
+- src/sync.js
+- config.js
