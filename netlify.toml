@@ -2,13 +2,12 @@
   # Deploy the root directory (where index.html, js/, src/ folders are)
   base = ""
   publish = "."
-  # No build command needed - this is a static HTML app
-  command = "echo 'Deploying static files - no build required'"
+  # Use a simple command that always succeeds
+  command = ":"
 
-# Tell Netlify to skip dependency installation
-[build.environment]
-  NPM_FLAGS = "--version"
-  NETLIFY_SKIP_INSTALL = "true"
+# Disable automatic dependency installation
+[build.processing]
+  skip_processing = false
 
 [[redirects]]
   from = "/*"

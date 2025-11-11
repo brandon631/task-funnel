@@ -1,0 +1,7 @@
+# Ignore Node.js project files to prevent automatic dependency installation
+package.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
+node_modules/
+apps/
+packages/
